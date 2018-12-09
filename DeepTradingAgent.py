@@ -15,7 +15,7 @@ import tensorflow.keras as k
 from tensorflow.keras.layers import *
 
 class Trader:
-    def __init__(self, max_turns=60*24*60, fee_rate=.0005):
+    def __init__(self, max_turns=60*24, fee_rate=.0005):
         self.action_space = [i for i in range(17)]
         self.max_turns = max_turns
         self.fee_rate = fee_rate
@@ -102,11 +102,6 @@ class DQNTrader():
     def get_epsilon(self, t):
         return max(self.epsilon_min, min(self.epsilon, 1.0 - math.log10((t + 1) * self.epsilon_decay)))
     
-    def preprocess_state(self, s):
-        time, coins, cash = s
-        unzip = np.append(bitstamp[time-60*24*30 : time].flatten(), [coins, cash])
-        state = unzip.reshape(1,60*24*30*7+2) # 1 batch of input
-        return state
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, min(len(self.memory), batch_size))
         xs, ys = [],[]
@@ -121,7 +116,7 @@ class DQNTrader():
             Q[0][action] = target
             xs.append(state[0])
             ys.append(Q[0])
-            print(len(xs),'/',self.batch_size,'loaded', end='\r',flush=True)
+            print(len(xs),'/',self.batch_size,'loaded')
         self.model.fit(np.array(xs), np.array(ys), epochs=1)
 
         if self.epsilon > self.epsilon_min:
@@ -133,21 +128,23 @@ class DQNTrader():
             state = self.env.reset()
             done = False
             rewards = 0
+            t=0
             while not done:
+                if t%100==0:
+                    print(t,'turns played')
                 action = self.choose_action(state, self.get_epsilon(e))
                 next_state, reward, done = self.env.step(action)
                 self.memory.append((state, action, reward, next_state, done))
                 state = next_state
                 rewards += reward
-            
+                t += 1
             print(self.env.time, self.env.t, self.env.cash, self.env.coins, self.env.asset)
             scores.append(rewards)
             mean_score = np.mean(scores)
             if mean_score >= self.n_win_ticks and e >= 100:
                 if not self.quiet: print('Ran {} episodes. Solved after {} trials ✔'.format(e, e - 100))
                 return e - 100
-            if e % 10 == 0:
-                print('[Episode {}] - Mean survival time over last 100 episodes was {} ticks.'.format(e, mean_score))
+            print('[Episode {}] - Mean survival time over last 100 episodes was {} ticks.'.format(e, mean_score))
             self.replay(self.batch_size)
         return e
 
