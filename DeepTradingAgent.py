@@ -13,6 +13,8 @@ bitstamp = np.array(bitstamp)
 
 import tensorflow.keras as k
 from tensorflow.keras.layers import *
+from tensorflow.keras.models import model_from_json
+
 
 class Trader:
     def __init__(self, max_turns=60*24, fee_rate=.0005):
@@ -59,7 +61,7 @@ class Trader:
 class DQNTrader():
     def __init__(self, n_episodes=100, n_win_ticks=195, 
                  gamma=.9999, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, 
-                 batch_size=32):
+                 batch_size=64):
         self.env = Trader()
         self.memory = deque(maxlen=100000)
         self.gamma = gamma
@@ -80,7 +82,7 @@ class DQNTrader():
         c = Lambda(lambda i:i[:,-2:])(inputs)
         t = Reshape((60*24*30,7))(t0)
         print(t,c)
-        lstm = LSTM(7, return_sequences=False)(t)
+        lstm = CuDNNLSTM(7, return_sequences=False)(t)
         print(lstm)
         h1 = Dense(1)(lstm)
         print(h1,c)
@@ -116,7 +118,8 @@ class DQNTrader():
             Q[0][action] = target
             xs.append(state[0])
             ys.append(Q[0])
-            print(len(xs),'/',self.batch_size,'loaded')
+            if len(xs)%10==0:
+                print(len(xs),'/',self.batch_size,'batches loaded')
         self.model.fit(np.array(xs), np.array(ys), epochs=1)
 
         if self.epsilon > self.epsilon_min:
@@ -141,11 +144,12 @@ class DQNTrader():
             print(self.env.time, self.env.t, self.env.cash, self.env.coins, self.env.asset)
             scores.append(rewards)
             mean_score = np.mean(scores)
-            if mean_score >= self.n_win_ticks and e >= 100:
-                if not self.quiet: print('Ran {} episodes. Solved after {} trials ✔'.format(e, e - 100))
-                return e - 100
-            print('[Episode {}] - Mean survival time over last 100 episodes was {} ticks.'.format(e, mean_score))
+            print('[Episode {}] - Mean score over last 100 episodes was {} ticks.'.format(e, mean_score))
             self.replay(self.batch_size)
+            json = self.model.to_json()
+            print(json)
+            with open('model.json','w') as f:
+                f.write(json)
         return e
 
 agent = DQNTrader()
