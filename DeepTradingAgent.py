@@ -18,7 +18,7 @@ from tensorflow.keras.models import model_from_json
 
 class Trader:
     def __init__(self, max_turns=60*24, fee_rate=.0005):
-        self.action_space = [i for i in range(17)]
+        self.action_space = [i for i in range(5)]
         self.max_turns = max_turns
         self.fee_rate = fee_rate
         self.reset()
@@ -27,7 +27,7 @@ class Trader:
         self.t = 0
         self.cash = 100000
         self.coins = 0
-        self.time = random.randrange(60*24*60, len(bitstamp) - 60*24*60)
+        self.time = random.randrange(60*24*60, len(bitstamp) - self.max_turns)
         self.done = False
         s = self.t+self.time, self.coins, self.cash
         return s
@@ -36,23 +36,23 @@ class Trader:
         if self.t == self.max_turns:
             self.done = True
         price_open = bitstamp[self.time + self.t][0]
-        price_close = bitstamp[self.time + self.t + 1][0]
+        price_close = bitstamp[self.time + self.t][3]
         prev_asset = price_open * self.coins + self.cash
-        percent = action-8
+        percent = (action-2)*.2
         if percent < 0:
-            coins_sold = self.coins * (-percent) * .1
+            coins_sold = self.coins * (-percent)
             self.cash += coins_sold * price_open * (1-self.fee_rate)
             self.coins -= coins_sold
 
         elif percent > 0:
-            money_spent = self.cash * percent * .1 
+            money_spent = self.cash * percent 
             self.coins += money_spent * (1-self.fee_rate) / price_open
             self.cash -= money_spent
             
         r = price_close * self.coins + self.cash - prev_asset
         s = self.t+self.time, self.coins, self.cash
         self.asset = price_close * self.coins + self.cash
-        if self.asset < 60000:
+        if self.asset < 50000:
             self.done = True
             
         self.t += 1
@@ -126,7 +126,6 @@ class DQNTrader():
             self.epsilon *= self.epsilon_decay
 
     def run(self):
-        scores = deque(maxlen=100)
         for e in range(self.n_episodes):
             state = self.env.reset()
             done = False
@@ -141,13 +140,9 @@ class DQNTrader():
                 state = next_state
                 rewards += reward
                 t += 1
-            print(self.env.time, self.env.t, self.env.cash, self.env.coins, self.env.asset)
-            scores.append(rewards)
-            mean_score = np.mean(scores)
-            print('[Episode {}] - Mean score over last 100 episodes was {} ticks.'.format(e, mean_score))
+            print(self.env.time, self.env.t, self.env.cash, self.env.coins, self.env.asset, rewards)
             self.replay(self.batch_size)
             json = self.model.to_json()
-            print(json)
             with open('model.json','w') as f:
                 f.write(json)
         return e
