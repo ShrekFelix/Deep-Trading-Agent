@@ -1,0 +1,15 @@
+2018-12-11 05:07:28.315884: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2018-12-11 05:07:28.495765: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:897] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2018-12-11 05:07:28.497417: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1392] Found device 0 with properties: 
+name: TITAN Xp major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:13:00.0
+totalMemory: 11.91GiB freeMemory: 11.74GiB
+2018-12-11 05:07:28.497438: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1471] Adding visible gpu devices: 0
+2018-12-11 05:07:31.657932: I tensorflow/core/common_runtime/gpu/gpu_device.cc:952] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-12-11 05:07:31.657983: I tensorflow/core/common_runtime/gpu/gpu_device.cc:958]      0 
+2018-12-11 05:07:31.657993: I tensorflow/core/common_runtime/gpu/gpu_device.cc:971] 0:   N 
+2018-12-11 05:07:31.658398: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1084] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 11364 MB memory) -> physical GPU (device: 0, name: TITAN Xp, pci bus id: 0000:13:00.0, compute capability: 6.1)
+2018-12-11 05:07:31.935886: I tensorflow/core/kernels/cuda_solvers.cc:159] Creating CudaSolver handles for stream 0x562b95fd4b20
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 39737397 ON dcc-ece-gpu-06 CANCELLED AT 2018-12-11T06:07:34 DUE TO TIME LIMIT ***
+slurmstepd: error: *** STEP 39737397.0 ON dcc-ece-gpu-06 CANCELLED AT 2018-12-11T06:07:36 DUE TO TIME LIMIT ***

@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --output=out.txt
-#SBATCH --error=err.txt
+#SBATCH --output=train.out
+#SBATCH --error=train.err
 #SBATCH --account=ece-gpu-high
 #SBATCH -p ece-gpu-high --gres=gpu:1
 #SBATCH -c 6

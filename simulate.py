@@ -15,7 +15,7 @@ import tensorflow.keras as k
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import model_from_json
 
-with open('model','r') as f:
+with open('model.json','r') as f:
     json = f.readline()
 
 model = model_from_json(json)
@@ -103,7 +103,7 @@ class Simulator():
             state = next_state
             rewards += reward
             t += 1
-            print(self.env.asset, rewards)
+            print(t, self.env.coins, self.env.cash, self.env.asset, rewards)
 
 agent = Simulator()
 agent.run()
